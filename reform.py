@@ -12,12 +12,12 @@ def main():
 
     # Initialise test data
     exercise = 1
-    video_path = "/Users/melodyflavel/Desktop/Squats/TooDeep.MOV"
+    video_path = "/Users/melodyflavel/Desktop/Squats/AdequateSide.MOV"
 
     if exercise == 1:
         analyser = sa.SquatAnalyser()
         analyser.process_video(video_path)
-        analyser.print_results()
+        analyser.results.print_results()
     else:
         pass
 
