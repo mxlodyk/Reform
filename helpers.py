@@ -11,3 +11,8 @@ def calculate_angle(a, b, c):
     if angle > 180.0:
         angle = 360 - angle
     return angle
+
+# Convert normalised coordinates to pixel coordinates
+def convert_coordinates(landmark, image):
+    pixel_coordinates = (int(landmark[0] * image.shape[1]), int(landmark[1] * image.shape[0]))
+    return pixel_coordinates
