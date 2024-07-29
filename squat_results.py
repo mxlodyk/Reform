@@ -18,6 +18,10 @@ class SquatResults:
     too_shallow = False
     too_deep = False
 
+    deepest_squat_angle = float('inf')
+    deepest_squat_left_hip_y = float('inf')
+    deepest_squat_left_knee_y = float('inf')
+
     def __init__(self):
         pass
 

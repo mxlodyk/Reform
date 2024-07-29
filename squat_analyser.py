@@ -91,21 +91,21 @@ class SquatAnalyser:
     # Analyse form
     def analyse_form(self, image):
 
-        # Analyse feet stance
-        left_heel = self.landmarks["left_heel"]
-        right_heel = self.landmarks["right_heel"]
-        left_shoulder = self.landmarks["left_shoulder"]
-        right_shoulder = self.landmarks["right_shoulder"]
-        feet_distance = np.sqrt((left_heel[0] - right_heel[0]) ** 2 + (left_heel[1] - right_heel[1]) ** 2)
-        shoulder_distance = np.sqrt((left_shoulder[0] - right_shoulder[0]) ** 2 + (left_shoulder[1] -
-                                                                                   right_shoulder[1]) ** 2)
-
         if self.results.front_view:
             # Analyse distance between feet
+            left_heel = self.landmarks["left_heel"]
+            right_heel = self.landmarks["right_heel"]
+            left_shoulder = self.landmarks["left_shoulder"]
+            right_shoulder = self.landmarks["right_shoulder"]
+
+            feet_distance = np.sqrt((left_heel[0] - right_heel[0]) ** 2 + (left_heel[1] - right_heel[1]) ** 2)
+            shoulder_distance = np.sqrt((left_shoulder[0] - right_shoulder[0]) ** 2 + (left_shoulder[1] -
+                                                                                       right_shoulder[1]) ** 2)
             left_heel_pixel = convert_coordinates(self.landmarks["left_heel"], image)
             right_heel_pixel = convert_coordinates(self.landmarks["right_heel"], image)
             left_shoulder_pixel = convert_coordinates(self.landmarks["left_shoulder"], image)
             right_shoulder_pixel = convert_coordinates(self.landmarks["right_shoulder"], image)
+
             if feet_distance > 1.1 * shoulder_distance:
                 self.results.feet_too_far = True
                 cv2.line(image, left_heel_pixel, left_shoulder_pixel, (0, 0, 255), 2)
@@ -153,6 +153,19 @@ class SquatAnalyser:
                 self.results.right_toes_too_inward = False
                 self.results.right_toes_too_outward = False
 
+            # Analyse knees during squat execution
+            left_knee_pixel = convert_coordinates(self.landmarks["left_knee"], image)
+            if self.landmarks["left_knee"] < self.landmarks["left_ankle"]:
+                self.results.left_knee_inward = True
+                cv2.circle(image, left_knee_pixel, 2, (0, 0, 255), 12)
+            else:
+                self.results.left_knee_inward = False
+
+            if self.landmarks["right_knee"] > self.landmarks["right_ankle"]:
+                self.results.right_knee_inward = True
+            else:
+                self.results.right_knee_inward = False
+
         # Determine when squat is completed
         hip_knee_heel_angle = calculate_angle(self.landmarks["left_hip"], self.landmarks["left_knee"], self.landmarks["left_heel"])
         cv2.putText(image, str(hip_knee_heel_angle),
@@ -168,20 +181,6 @@ class SquatAnalyser:
         elif hip_knee_heel_angle > 120:
                 self.results.performing_squat = False
                 self.results.completed_squat = True
-
-        if self.results.front_view:
-            # Analyse knees during squat execution
-            left_knee_pixel = convert_coordinates(self.landmarks["left_knee"], image)
-            if self.landmarks["left_knee"] < self.landmarks["left_ankle"]:
-                self.results.left_knee_inward = True
-                cv2.circle(image, left_knee_pixel, 2, (0, 0, 255), 12)
-            else:
-                self.results.left_knee_inward = False
-
-            if self.landmarks["right_knee"] > self.landmarks["right_ankle"]:
-                self.results.right_knee_inward = True
-            else:
-                self.results.right_knee_inward = False
 
         if self.results.left_view or self.results.right_view:
             # Analyse torso position
@@ -206,33 +205,35 @@ class SquatAnalyser:
                 cv2.line(image, left_shoulder_pixel, left_hip_pixel, (0, 255, 0), 6)
 
             # Determine values at deepest point in squat
-            deepest_squat_angle = 130
-            if hip_knee_heel_angle < deepest_squat_angle:
-                deepest_squat_angle_reached = False
-                deepest_squat_angle = hip_knee_heel_angle
-                deepest_squat_left_hip_y = self.landmarks["left_hip"][1]
-                deepest_squat_left_knee_y = self.landmarks["left_knee"][1]
-                left_knee_pixel = convert_coordinates(self.landmarks["left_knee"], image)
-            elif deepest_squat_angle < hip_knee_heel_angle:
-                deepest_squat_angle_reached = True
+            left_knee_pixel = convert_coordinates(self.landmarks["left_knee"], image)
+            left_hip_pixel = convert_coordinates(self.landmarks["left_hip"], image)
+
+            if hip_knee_heel_angle < self.results.deepest_squat_angle:
+                #deepest_squat_angle_reached = False
+                self.results.deepest_squat_angle = hip_knee_heel_angle
+                self.results.deepest_squat_left_hip_y = self.landmarks["left_hip"][1]
+                self.results.deepest_squat_left_knee_y = self.landmarks["left_knee"][1]
 
             # Analyse squat depth
-            if not deepest_squat_angle_reached:
-                if deepest_squat_left_hip_y < deepest_squat_left_knee_y:
-                    self.results.too_shallow = True
-                    self.results.too_deep = False
-                    cv2.line(image, left_hip_pixel, left_knee_pixel, (0, 165, 255), 6)
-                elif deepest_squat_angle < 30:
-                    self.results.too_deep = True
-                    self.results.too_shallow = False
-                    cv2.line(image, left_hip_pixel, left_knee_pixel, (0, 0, 255), 6)
-                else:
-                    self.results.too_deep = False
-                    self.results.too_shallow = False
-                    cv2.line(image, left_hip_pixel, left_knee_pixel, (0, 255, 0), 6)
+            #if not deepest_squat_angle_reached:
+            if self.results.deepest_squat_left_hip_y < self.results.deepest_squat_left_knee_y:
+                self.results.too_shallow = True
+                self.results.too_deep = False
+                cv2.line(image, left_hip_pixel, left_knee_pixel, (0, 165, 255), 6)
+            else:
+                self.results.too_shallow = False
+                cv2.line(image, left_hip_pixel, left_knee_pixel, (0, 255, 0), 6)
+
+            if self.results.deepest_squat_angle < 30:
+                self.results.too_deep = True
+                self.results.too_shallow = False
+                cv2.line(image, left_hip_pixel, left_knee_pixel, (0, 0, 255), 6)
+            else:
+                self.results.too_deep = False
+                cv2.line(image, left_hip_pixel, left_knee_pixel, (0, 255, 0), 6)
 
         #print(f"{hip_knee_heel_angle} / {deepest_squat_angle}")
-        print(self.results.performing_squat)
+        print(self.results.deepest_squat_angle)
 
 
 
