@@ -209,30 +209,24 @@ class SquatAnalyser:
             left_hip_pixel = convert_coordinates(self.landmarks["left_hip"], image)
 
             if hip_knee_heel_angle < self.results.deepest_squat_angle:
-                #deepest_squat_angle_reached = False
                 self.results.deepest_squat_angle = hip_knee_heel_angle
                 self.results.deepest_squat_left_hip_y = self.landmarks["left_hip"][1]
                 self.results.deepest_squat_left_knee_y = self.landmarks["left_knee"][1]
 
             # Analyse squat depth
-            #if not deepest_squat_angle_reached:
             if self.results.deepest_squat_left_hip_y < self.results.deepest_squat_left_knee_y:
                 self.results.too_shallow = True
                 self.results.too_deep = False
                 cv2.line(image, left_hip_pixel, left_knee_pixel, (0, 165, 255), 6)
-            else:
-                self.results.too_shallow = False
-                cv2.line(image, left_hip_pixel, left_knee_pixel, (0, 255, 0), 6)
-
-            if self.results.deepest_squat_angle < 30:
+            elif self.results.deepest_squat_angle < 30:
                 self.results.too_deep = True
                 self.results.too_shallow = False
                 cv2.line(image, left_hip_pixel, left_knee_pixel, (0, 0, 255), 6)
             else:
                 self.results.too_deep = False
+                self.results.too_shallow = False
                 cv2.line(image, left_hip_pixel, left_knee_pixel, (0, 255, 0), 6)
 
-        #print(f"{hip_knee_heel_angle} / {deepest_squat_angle}")
         print(self.results.deepest_squat_angle)
 
 
