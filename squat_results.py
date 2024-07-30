@@ -3,8 +3,11 @@ class SquatResults:
     front_view = False
     right_view = False
     left_view = False
+
     performing_squat = False
     completed_squat = False
+    deepest_squat_angle = float('inf')
+
     feet_too_far = False
     feet_too_close = False
     left_toes_too_outward = False
@@ -13,14 +16,11 @@ class SquatResults:
     right_toes_too_inward = False
     left_knee_inward = False
     right_knee_inward = False
-    torso_too_forward = False
-    torso_too_upright = False
+    torso_too_forward = 0
+    torso_too_upright = 0
+    torso_adequate = 0
     too_shallow = False
     too_deep = False
-
-    deepest_squat_angle = float('inf')
-    deepest_squat_left_hip_y = float('inf')
-    deepest_squat_left_knee_y = float('inf')
 
     def __init__(self):
         pass
@@ -64,9 +64,9 @@ class SquatResults:
                 print("Squat is too deep.")
             else:
                 print("Squat depth is adequate.")
-            if self.torso_too_upright:
+            if self.torso_too_upright > self.torso_too_forward and self.torso_too_upright > self.torso_adequate:
                 print("Torso is too upright.")
-            elif self.torso_too_forward:
+            elif self.torso_too_forward > self.torso_too_upright and self.torso_too_forward > self.torso_adequate:
                 print("Torso is leaning too far forward.")
             else:
                 print("Torso is adequate.")
