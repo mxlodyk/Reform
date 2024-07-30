@@ -107,24 +107,47 @@ class SquatAnalyser:
         right_shoulder_pixel = convert_coordinates(self.landmarks["right_shoulder"], image)
         left_heel_placement_pixel = [left_shoulder_pixel[0], left_heel_pixel[1]]
         right_heel_placement_pixel = [right_shoulder_pixel[0], right_heel_pixel[1]]
-        if feet_distance > 1.1 * shoulder_distance:
+        if feet_distance > 1.20 * shoulder_distance:
             self.results.feet_too_far = True
-        elif feet_distance < 0.9 * shoulder_distance:
+        elif feet_distance < 0.80 * shoulder_distance:
             self.results.feet_too_close = True
         else:
             self.results.feet_too_close = False
             self.results.feet_too_far = False
-        
+
+        x_size = 15
         if self.results.feet_too_far or self.results.feet_too_close:
-            cv2.line(image, left_shoulder_pixel, left_heel_placement_pixel, (0, 0, 255), 2)
-            cv2.line(image, right_shoulder_pixel, right_heel_placement_pixel, (0, 0, 255), 2)
+            self.draw_dashed_lines(image, left_shoulder_pixel, left_heel_placement_pixel, (0, 0, 255), 2, 15, 15)
+            self.draw_dashed_lines(image, right_shoulder_pixel, right_heel_placement_pixel, (0, 0, 255), 2, 15, 15)
+            # Draw 'x'
+            cv2.line(image, (int(right_heel_placement_pixel[0] - x_size), int(right_heel_placement_pixel[1] - x_size)),
+                     (int(right_heel_placement_pixel[0] + x_size), int(right_heel_placement_pixel[1] + x_size)), (0, 0, 255), 2)
+            cv2.line(image, (int(right_heel_placement_pixel[0] - x_size), int(right_heel_placement_pixel[1] + x_size)),
+                     (int(right_heel_placement_pixel[0] + x_size), int(right_heel_placement_pixel[1] - x_size)), (0, 0, 255), 2)
+            cv2.line(image, (int(left_heel_placement_pixel[0] - x_size), int(left_heel_placement_pixel[1] - x_size)),
+                     (int(left_heel_placement_pixel[0] + x_size), int(left_heel_placement_pixel[1] + x_size)),
+                     (0, 0, 255), 2)
+            cv2.line(image, (int(left_heel_placement_pixel[0] - x_size), int(left_heel_placement_pixel[1] + x_size)),
+                     (int(left_heel_placement_pixel[0] + x_size), int(left_heel_placement_pixel[1] - x_size)),
+                     (0, 0, 255), 2)
             cv2.circle(image, left_heel_pixel, 2, (0, 0, 255), 12)
             cv2.circle(image, right_heel_pixel, 2, (0, 0, 255), 12)
         else:
-            cv2.line(image, left_shoulder_pixel, left_heel_placement_pixel, (0, 255, 0), 2)
-            cv2.line(image, right_shoulder_pixel, right_heel_placement_pixel, (0, 255, 0), 2)
-            cv2.line(image, left_shoulder_pixel, left_heel_placement_pixel, (0, 255, 0), 2)
-            cv2.line(image, right_shoulder_pixel, right_heel_placement_pixel, (0, 255, 0), 2)
+            self.draw_dashed_lines(image, left_shoulder_pixel, left_heel_placement_pixel, (0, 255, 0), 2, 15, 15)
+            self.draw_dashed_lines(image, right_shoulder_pixel, right_heel_placement_pixel, (0, 255, 0), 2, 15, 15)
+            # Draw 'x'
+            cv2.line(image, (int(right_heel_placement_pixel[0] - x_size), int(right_heel_placement_pixel[1] - x_size)),
+                     (int(right_heel_placement_pixel[0] + x_size), int(right_heel_placement_pixel[1] + x_size)),
+                     (0, 255, 0), 2)
+            cv2.line(image, (int(right_heel_placement_pixel[0] - x_size), int(right_heel_placement_pixel[1] + x_size)),
+                     (int(right_heel_placement_pixel[0] + x_size), int(right_heel_placement_pixel[1] - x_size)),
+                     (0, 255, 0), 2)
+            cv2.line(image, (int(left_heel_placement_pixel[0] - x_size), int(left_heel_placement_pixel[1] - x_size)),
+                     (int(left_heel_placement_pixel[0] + x_size), int(left_heel_placement_pixel[1] + x_size)),
+                     (0, 255, 0), 2)
+            cv2.line(image, (int(left_heel_placement_pixel[0] - x_size), int(left_heel_placement_pixel[1] + x_size)),
+                     (int(left_heel_placement_pixel[0] + x_size), int(left_heel_placement_pixel[1] - x_size)),
+                     (0, 255, 0), 2)
 
         # Analyse positioning of toes
         left_toes_angle = calculate_angle(self.landmarks["left_toes"], self.landmarks["left_ankle"],
@@ -240,8 +263,24 @@ class SquatAnalyser:
             else:
                 self.results.too_deep = False
                 self.results.too_shallow = False
-                cv2.line(image, left_hip_pixel, left_knee_pixel, (0, 255, 0), 6)
+                cv2.line(image, left_hip_pixel, left_knee_pixel, (0, 255, 0), 6)\
 
+
+    def draw_dashed_lines(self, image, start_point, end_point, colour, thickness, dash_length, gap_length):
+        distance = np.sqrt((end_point[0] - start_point[0]) ** 2 + (end_point[1] - start_point[1]) ** 2)
+
+        num_dashes = int(distance / (dash_length + gap_length))
+
+        for i in range(num_dashes):
+            start = (
+                int(start_point[0] + (end_point[0] - start_point[0]) * i / num_dashes),
+                int(start_point[1] + (end_point[1] - start_point[1]) * i / num_dashes)
+            )
+            end = (
+                int(start_point[0] + (end_point[0] - start_point[0]) * (i + 0.5) / num_dashes),
+                int(start_point[1] + (end_point[1] - start_point[1]) * (i + 0.5) / num_dashes)
+            )
+            cv2.line(image, start, end, colour, thickness)
 
     # Write text to video
     def write_text(self, image):

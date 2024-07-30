@@ -12,7 +12,7 @@ def main():
 
     # Initialise test data
     exercise = 1
-    video_path = "/Users/melodyflavel/Desktop/Squats/FeetTooFar.MOV"
+    video_path = "/Users/melodyflavel/Desktop/Squats/AdequateFront.MOV"
 
     if exercise == 1:
         analyser = sa.SquatAnalyser()
