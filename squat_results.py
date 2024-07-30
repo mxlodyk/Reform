@@ -7,6 +7,7 @@ class SquatResults:
     performing_squat = False
     completed_squat = False
     deepest_squat_angle = float('inf')
+    tallest_squat_height = float('-inf')
 
     feet_too_far = False
     feet_too_close = False
@@ -14,8 +15,10 @@ class SquatResults:
     right_toes_too_outward = False
     left_toes_too_inward = False
     right_toes_too_inward = False
-    left_knee_inward = False
-    right_knee_inward = False
+    left_knee_inward = 0
+    right_knee_inward = 0
+    left_knee_adequate = 0
+    right_knee_adequate = 0
     torso_too_forward = 0
     torso_too_upright = 0
     torso_adequate = 0
@@ -48,14 +51,16 @@ class SquatResults:
                 print("Right toes too inward.")
             else:
                 print("Toes are adequate.")
-            if self.left_knee_inward and self.right_knee_inward:
+            if self.left_knee_inward > self.left_knee_adequate and self.right_knee_inward > self.right_knee_adequate:
                 print("Knees are inward.")
-            elif self.left_knee_inward and not self.right_knee_inward:
+            elif self.left_knee_inward > self.left_knee_adequate and not self.right_knee_inward > self.right_knee_adequate:
                 print("Left knee is inward.")
-            elif self.right_knee_inward and not self.left_knee_inward:
+            elif self.right_knee_inward > self.right_knee_adequate and not self.left_knee_inward > self.left_knee_adequate:
                 print("Right knee is inward.")
-            else:
+            elif self.right_knee_adequate > self.right_knee_inward and self.left_knee_adequate > self.left_knee_inward:
                 print("Knees are adequate.")
+            else:
+                print("Error determining knee score.")
 
         if self.left_view or self.right_view:
             if self.too_shallow:
