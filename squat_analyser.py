@@ -49,11 +49,11 @@ class SquatAnalyser:
     def determine_view(self, landmarks):
         right_knee_visibility = landmarks[self.mp_pose.PoseLandmark.RIGHT_KNEE.value].visibility
         left_knee_visibility = landmarks[self.mp_pose.PoseLandmark.LEFT_KNEE.value].visibility
-        if right_knee_visibility > 0.9 and left_knee_visibility > 0.9:
+        if right_knee_visibility > 0.8 and left_knee_visibility > 0.8:
             self.results.front_view = True
-        elif right_knee_visibility > 0.9 and not left_knee_visibility > 0.9:
+        elif right_knee_visibility > 0.8 and not left_knee_visibility > 0.8:
             self.results.right_view = True
-        elif left_knee_visibility > 0.9 and not right_knee_visibility > 0.9:
+        elif left_knee_visibility > 0.8 and not right_knee_visibility > 0.8:
             self.results.left_view = True
         else:
             print("Error determining view.")
@@ -164,7 +164,12 @@ class SquatAnalyser:
             self.results.left_toes_too_inward = True
             self.results.left_toes_too_outward = False
             cv2.circle(image, left_toes_pixel, 2, (0, 0, 255), 12)
-        elif right_toes_angle > 140:
+        else:
+            self.results.left_toes_too_inward = False
+            self.results.left_toes_too_outward = False
+            cv2.circle(image, left_toes_pixel, 2, (0, 255 , 0), 12)
+
+        if right_toes_angle > 140:
             self.results.right_toes_too_outward = True
             self.results.right_toes_too_inward = False
             cv2.circle(image, right_toes_pixel, 2, (0, 0, 255), 12)
@@ -173,10 +178,9 @@ class SquatAnalyser:
             self.results.right_toes_too_outward = False
             cv2.circle(image, right_toes_pixel, 2, (0, 0, 255), 12)
         else:
-            self.results.left_toes_too_outward = False
-            self.results.left_toes_too_inward = False
             self.results.right_toes_too_inward = False
             self.results.right_toes_too_outward = False
+            cv2.circle(image, right_toes_pixel, 2, (0, 255, 0), 12)
 
         left_shoulder_hip_distance = self.landmarks["left_hip"][1] - self.landmarks["left_shoulder"][1]
         # Determine values at tallest point in squat

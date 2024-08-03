@@ -1,6 +1,22 @@
 import squat_analyser as sa
+import deadlift_analyser as da
+#from tkinter import *
 
 def main():
+
+    # window = Tk()
+    # window.geometry("500x500")
+    # window.title("Reform")
+    #
+    # # Fix
+    # label = Label(window, text="Absolute video path: ", font=('Arial', 18))
+    # label.pack()
+    #
+    # textbox = Text(window, font=('Arial', 16))
+    # textbox.pack()
+    #
+    # button = Button(window, text="Select", font=('Arial', 16))
+    # button.pack()
 
     # Get user input
     # exercise = input("Select exercise:\n"
@@ -10,12 +26,20 @@ def main():
     #
     # video_path = input("Enter video path:\n")
 
+    select_analyser()
+    #window.mainloop()
+
+def select_analyser():
     # Initialise test data
-    exercise = 1
-    video_path = "/Users/melodyflavel/Desktop/Squats/AdequateFront.MOV"
+    exercise = 2
+    video_path = "/Users/melodyflavel/Desktop/Deadlifts/HipsHigherThanShoulders.MOV"
 
     if exercise == 1:
         analyser = sa.SquatAnalyser()
+        analyser.process_video(video_path)
+        analyser.results.print_results()
+    elif exercise == 2:
+        analyser = da.DeadliftAnalyser()
         analyser.process_video(video_path)
         analyser.results.print_results()
     else:

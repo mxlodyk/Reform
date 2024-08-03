@@ -11,13 +11,20 @@ class SquatResults:
 
     feet_too_far = False
     feet_too_close = False
-    left_toes_too_outward = False
-    right_toes_too_outward = False
+    # Replace with counters and update dependant code.
     left_toes_too_inward = False
+    left_toes_too_outward = False
     right_toes_too_inward = False
+    right_toes_too_outward = False
+    # left_toes_too_inward = 0
+    # left_toes_too_outward = 0
+    # left_toes_adequate = 0
+    # right_toes_too_inward = 0
+    # right_toes_too_outward = 0
+    # right_toes_adequate = 0
     left_knee_inward = 0
-    right_knee_inward = 0
     left_knee_adequate = 0
+    right_knee_inward = 0
     right_knee_adequate = 0
     torso_too_forward = 0
     torso_too_upright = 0
