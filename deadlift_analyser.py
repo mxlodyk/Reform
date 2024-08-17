@@ -4,6 +4,7 @@ import numpy as np
 from helpers import calculate_angle
 from helpers import convert_coordinates
 import deadlift_results
+#from ultralytics import YOLO
 
 class DeadliftAnalyser:
 
@@ -12,6 +13,7 @@ class DeadliftAnalyser:
     def __init__(self):
         self.mp_drawing = mp.solutions.drawing_utils
         self.mp_pose = mp.solutions.pose
+        #self.object_detection_model = YOLO('yolov8n.pt')
         self.landmarks = {}
 
     # Process video
@@ -22,15 +24,20 @@ class DeadliftAnalyser:
                 ret, frame = cap.read()
                 if not ret:
                     break
+
+                # Object detection
+                #object_detection_results = self.object_detection_model(frame)
+                #annotated_object_detection = object_detection_results[0].plot()
+                # Landmark detection
                 image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) # Convert video colour formatting to RGB for MediaPipe processing
                 image.flags.writeable = False
-                results = pose.process(image)
+                landmark_results = pose.process(image)
                 image.flags.writeable = True
                 image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR) # Convert video colour formatting back to BGR for OpenCV drawing
-                if results.pose_landmarks:
-                    landmarks = results.pose_landmarks.landmark
+                if landmark_results.pose_landmarks:
+                    landmarks = landmark_results.pose_landmarks.landmark
                     self.determine_view(landmarks)
-                    self.draw_landmarks(results, image)
+                    self.draw_landmarks(landmark_results, image)
                     self.extract_landmarks(landmarks)
                     if self.results.front_view:
                         print("Front View.")
