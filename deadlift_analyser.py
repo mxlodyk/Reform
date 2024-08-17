@@ -96,20 +96,59 @@ class DeadliftAnalyser:
 
     def analyse_side_view(self, image):
 
+        shoulder_hip_knee_angle = calculate_angle(self.landmarks["left_shoulder"], self.landmarks["left_hip"],
+                                              self.landmarks["left_knee"])
+        cv2.putText(image, str(shoulder_hip_knee_angle),
+                    # Convert normalised coordinates to coordinates based on size of video feed
+                    tuple(np.multiply(self.landmarks["left_hip"], [1080, 1920]).astype(int)),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2, cv2.LINE_AA)
+        
+        # Start position
+        if shoulder_hip_knee_angle > 150 and self.results.performing_deadlift == False:
+            self.results.performing_deadlift = False
+        # Performing deadlift
+        elif shoulder_hip_knee_angle < 150:
+            self.results.performing_deadlift = True
+
+            # Determine top position
+            if shoulder_hip_knee_angle > self.results.top_position_angle:
+                self.results.top_position_angle = shoulder_hip_knee_angle
+
+        if shoulder_hip_knee_angle >= self.results.top_position_angle and self.results.performing_deadlift == True:
+            self.results.top_position = True
+        else:
+            self.results.top_position = False
+
         # Check if left hip y is lower than left shoulder y at any point in deadlift.
         left_hip_pixel = convert_coordinates(self.landmarks["left_hip"], image)
         if self.landmarks["left_hip"][1] < self.landmarks["left_shoulder"][1]:
             self.results.hips_higher_than_shoulders = True
             cv2.circle(image, left_hip_pixel, 2, (0, 0, 255), 12)
 
+        # Check back at top position
+        if self.results.top_position:
+            if shoulder_hip_knee_angle > 175:
+                self.results.back_overextended = True
+                #print("Back OVEREXTENDED at top position")
+            else:
+                self.results.back_neutral = True
+                #self.results.back_overextended[0] = False
 
     def write_text(self, image):
 
         if self.results.left_view or self.results.right_view:
             cv2.putText(image, 'Side View', (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
             cv2.putText(image, 'Hip', (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 0), 2, cv2.LINE_AA)
+            cv2.putText(image, 'Back', (50, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 0), 2, cv2.LINE_AA)
 
             if self.results.hips_higher_than_shoulders:
                 cv2.putText(image, 'Hips Higher than Shoulders', (150, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2, cv2.LINE_AA)
             else:
                 cv2.putText(image, 'Adequate', (150, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2, cv2.LINE_AA)
+
+            if self.results.back_overextended:
+                cv2.putText(image, 'Back Overextended at Top', (150, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2, cv2.LINE_AA)
+            elif self.results.back_neutral:
+                cv2.putText(image, 'Back Neutral at Top', (150, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2, cv2.LINE_AA)
+            else:
+                pass

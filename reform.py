@@ -25,14 +25,13 @@ def main():
     #                  "3. Row\n")
     #
     # video_path = input("Enter video path:\n")
-
     select_analyser()
     #window.mainloop()
 
 def select_analyser():
     # Initialise test data
     exercise = 2
-    video_path = "/Users/melodyflavel/Desktop/Deadlifts/HipsHigherThanShoulders.MOV"
+    video_path = "deadlifts/demo_deadlift_0.mov"
 
     if exercise == 1:
         analyser = sa.SquatAnalyser()
