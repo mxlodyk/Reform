@@ -1,5 +1,8 @@
 class SquatResults:
 
+    barbell = False
+    bar_path_straight = False
+
     front_view = False
     right_view = False
     left_view = False

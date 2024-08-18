@@ -1,53 +1,30 @@
 import squat_analyser as sa
 import deadlift_analyser as da
-import barbell_detector
-#from tkinter import *
+import free_weight
 
 def main():
-
-    # window = Tk()
-    # window.geometry("500x500")
-    # window.title("Reform")
-    #
-    # # Fix
-    # label = Label(window, text="Absolute video path: ", font=('Arial', 18))
-    # label.pack()
-    #
-    # textbox = Text(window, font=('Arial', 16))
-    # textbox.pack()
-    #
-    # button = Button(window, text="Select", font=('Arial', 16))
-    # button.pack()
-
-    # Get user input
-    # exercise = input("Select exercise:\n"
-    #                  "1. Squat\n"
-    #                  "2. Deadlift\n"
-    #                  "3. Row\n")
-    #
-    # video_path = input("Enter video path:\n")
-    
     select_analyser()
-    #window.mainloop()
 
 def select_analyser():
     # Initialise test data
-    exercise = 2
-    video_path = "deadlifts/demo_deadlift_3.mov"
+    exercise = 1
+    video_path = "squats/demo_barbell_squat_0.mov"
 
     if exercise == 1:
-        detector = barbell_detector.BarbellDetector()
+        free_weight_detector = free_weight.FreeWeight()
         analyser = sa.SquatAnalyser()
-        detector.process_video(video_path)
-        analyser.process_video(video_path)
-        analyser.results.print_results()
-    elif exercise == 2:
-        detector = barbell_detector.BarbellDetector()
-        #detector.train_model()
-        #analyser = da.DeadliftAnalyser()
-        detector.process_video(video_path)
+        analyser.results.barbell, analyser.results.bar_path = free_weight_detector.detect_barbell(video_path)
+        print(f"Barbell: {analyser.results.barbell}")
+        print(f"Straight Path: {analyser.results.bar_path}")
         #analyser.process_video(video_path)
         #analyser.results.print_results()
+    elif exercise == 2:
+        free_weight_detector = free_weight.FreeWeight()
+        # free_weight_detector.train_model()
+        analyser = da.DeadliftAnalyser()
+        analyser.results.barbell, analyser.results.bar_path = free_weight_detector.detect_barbell(video_path)
+        analyser.process_video(video_path)
+        analyser.results.print_results()
     else:
         pass
 

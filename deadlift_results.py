@@ -1,5 +1,7 @@
 class DeadliftResults:
 
+    barbell = False
+    
     front_view = False
     right_view = False
     left_view = False

@@ -269,6 +269,8 @@ class SquatAnalyser:
                 self.results.too_shallow = False
                 cv2.line(image, left_hip_pixel, left_knee_pixel, (0, 255, 0), 6)\
 
+    #def analyse_bar_path(self, image):
+
 
     def draw_dashed_lines(self, image, start_point, end_point, colour, thickness, dash_length, gap_length):
         distance = np.sqrt((end_point[0] - start_point[0]) ** 2 + (end_point[1] - start_point[1]) ** 2)
