@@ -42,41 +42,47 @@ class SquatResults:
     def print_results(self):
         if self.front_view:
             if self.feet_too_far:
-                print("Feet too far.")
+                print("Feet are too far apart.")
             elif self.feet_too_close:
-                print("Feet too close.")
+                print("Feet are too close together.")
+            elif not self.feet_too_close and not self.feet_too_far:
+                print("Feet are adequately stanced.")
             else:
-                print("Feet are adequate.")
+                print("Error printing result of knee analysis.")
+
             if self.left_toes_too_outward and self.right_toes_too_outward:
-                print("Toes too outward.")
+                print("Toes are pointed too outward.")
             elif self.left_toes_too_outward and not self.right_toes_too_outward:
-                print("Left toes too outward.")
+                print("Toes are pointed too outward.")
             elif self.right_toes_too_outward and not self.left_toes_too_outward:
-                print("Right toes too outward.")
+                print("Right toes are pointed too outward.")
             elif self.left_toes_too_inward and self.right_toes_too_inward:
-                print("Toes too inward.")
+                print("Toes are pointed too inward.")
             elif self.left_toes_too_inward and not self.right_toes_too_inward:
-                print("Left toes too inward.")
+                print("Left toes are pointed too inward.")
             elif self.right_toes_too_inward and not self.left_toes_too_inward:
-                print("Right toes too inward.")
+                print("Right toes are pointed too inward.")
+            elif not self.right_toes_too_inward and not self.right_toes_too_outward and not self.left_toes_too_inward and not self.left_toes_too_outward:
+                print("Toes are adequately pointed.")
             else:
-                print("Toes are adequate.")
+                print("Error printing result of toe analysis.")
+
             if self.left_knee_inward > self.left_knee_adequate and self.right_knee_inward > self.right_knee_adequate:
-                print("Knees are inward.")
+                print("Knees moved inward.")
             elif self.left_knee_inward > self.left_knee_adequate and not self.right_knee_inward > self.right_knee_adequate:
-                print("Left knee is inward.")
+                print("Left knee moved inward.")
             elif self.right_knee_inward > self.right_knee_adequate and not self.left_knee_inward > self.left_knee_adequate:
-                print("Right knee is inward.")
+                print("Right knee moved inward.")
             elif self.right_knee_adequate > self.right_knee_inward and self.left_knee_adequate > self.left_knee_inward:
-                print("Knees are adequate.")
+                print("Knee motion is adequate.")
             else:
-                print("Error determining knee score.")
+                print("Error printing result of knee analysis.")
 
         if self.left_view or self.right_view:
             if self.too_shallow:
-                print("Squat is too shallow.")
+                print("Squat depth is too shallow.")
             elif self.too_deep:
-                print("Squat is too deep.")
+                print("Squat depth is too deep.")
             else:
                 print("Squat depth is adequate.")
             if self.torso_too_upright > self.torso_too_forward and self.torso_too_upright > self.torso_adequate:
@@ -84,4 +90,4 @@ class SquatResults:
             elif self.torso_too_forward > self.torso_too_upright and self.torso_too_forward > self.torso_adequate:
                 print("Torso is leaning too far forward.")
             else:
-                print("Torso is adequate.")
+                print("Torso is adequately positioned.")

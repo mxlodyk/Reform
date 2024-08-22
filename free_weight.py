@@ -43,19 +43,22 @@ class FreeWeight:
                 break
             for result in results:
                 for detection in result.boxes:
+                    confidence = detection.conf.item()
+                    # If detection confidence score is greater than 70%
+                    if confidence > 0.7:
                     # If 'barbell' class is detected
-                    if detection.cls == 0:
-                        barbell_detected = True
+                        if detection.cls == 0:
+                            barbell_detected = True
 
-                        # Get smallest and largest x coordinates of barbell
-                        box = detection.xywh[0]
-                        x_coordinate = (box[0].item())
-                        if x_coordinate < barbell_x_coordinates[0]:
-                            barbell_x_coordinates[0] = x_coordinate
-                        if x_coordinate > barbell_x_coordinates[1]:
-                            barbell_x_coordinates[1] = x_coordinate
+                            # Get smallest and largest x coordinates of barbell
+                            box = detection.xywh[0]
+                            x_coordinate = (box[0].item())
+                            if x_coordinate < barbell_x_coordinates[0]:
+                                barbell_x_coordinates[0] = x_coordinate
+                            if x_coordinate > barbell_x_coordinates[1]:
+                                barbell_x_coordinates[1] = x_coordinate
 
-                        bar_path_straight = self.analyse_bar_path(barbell_x_coordinates)
+                            bar_path_straight = self.analyse_bar_path(barbell_x_coordinates)
         cap.release()
         cv2.destroyAllWindows()
 

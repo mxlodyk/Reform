@@ -96,120 +96,133 @@ class SquatAnalyser:
     # Analyse form
     def analyse_front_view(self, image):
 
-        # Analyse distance between feet
-        feet_distance = np.sqrt((self.landmarks["left_heel"][0] - self.landmarks["right_heel"][0]) ** 2 +
-                                (self.landmarks["left_heel"][1] - self.landmarks["right_heel"][1]) ** 2)
-        shoulder_distance = np.sqrt((self.landmarks["left_shoulder"][0] - self.landmarks["right_shoulder"][0]) ** 2 +
-                                    (self.landmarks["left_shoulder"][1] - self.landmarks["right_shoulder"][1]) ** 2)
-        left_heel_pixel = convert_coordinates(self.landmarks["left_heel"], image)
-        right_heel_pixel = convert_coordinates(self.landmarks["right_heel"], image)
-        left_shoulder_pixel = convert_coordinates(self.landmarks["left_shoulder"], image)
-        right_shoulder_pixel = convert_coordinates(self.landmarks["right_shoulder"], image)
-        left_heel_placement_pixel = [left_shoulder_pixel[0], left_heel_pixel[1]]
-        right_heel_placement_pixel = [right_shoulder_pixel[0], right_heel_pixel[1]]
-        if feet_distance > 1.20 * shoulder_distance:
-            self.results.feet_too_far = True
-        elif feet_distance < 0.80 * shoulder_distance:
-            self.results.feet_too_close = True
-        else:
-            self.results.feet_too_close = False
-            self.results.feet_too_far = False
+        # Determine when squat is being performed based on distance between shoulder and knee
+        # If the distance in between the shoulder and knee is less than 0.4, the squat is being performed
+        shoulder_knee_distance = abs(self.landmarks["left_shoulder"][1] - self.landmarks["left_knee"][1])
+        # If the squat is being performed
+        if shoulder_knee_distance < 0.4:
 
-        x_size = 15
-        if self.results.feet_too_far or self.results.feet_too_close:
-            self.draw_dashed_lines(image, left_shoulder_pixel, left_heel_placement_pixel, (0, 0, 255), 2, 15, 15)
-            self.draw_dashed_lines(image, right_shoulder_pixel, right_heel_placement_pixel, (0, 0, 255), 2, 15, 15)
-            # Draw 'x'
-            cv2.line(image, (int(right_heel_placement_pixel[0] - x_size), int(right_heel_placement_pixel[1] - x_size)),
-                     (int(right_heel_placement_pixel[0] + x_size), int(right_heel_placement_pixel[1] + x_size)), (0, 0, 255), 2)
-            cv2.line(image, (int(right_heel_placement_pixel[0] - x_size), int(right_heel_placement_pixel[1] + x_size)),
-                     (int(right_heel_placement_pixel[0] + x_size), int(right_heel_placement_pixel[1] - x_size)), (0, 0, 255), 2)
-            cv2.line(image, (int(left_heel_placement_pixel[0] - x_size), int(left_heel_placement_pixel[1] - x_size)),
-                     (int(left_heel_placement_pixel[0] + x_size), int(left_heel_placement_pixel[1] + x_size)),
-                     (0, 0, 255), 2)
-            cv2.line(image, (int(left_heel_placement_pixel[0] - x_size), int(left_heel_placement_pixel[1] + x_size)),
-                     (int(left_heel_placement_pixel[0] + x_size), int(left_heel_placement_pixel[1] - x_size)),
-                     (0, 0, 255), 2)
-            cv2.circle(image, left_heel_pixel, 2, (0, 0, 255), 12)
-            cv2.circle(image, right_heel_pixel, 2, (0, 0, 255), 12)
-        else:
-            self.draw_dashed_lines(image, left_shoulder_pixel, left_heel_placement_pixel, (0, 255, 0), 2, 15, 15)
-            self.draw_dashed_lines(image, right_shoulder_pixel, right_heel_placement_pixel, (0, 255, 0), 2, 15, 15)
-            # Draw 'x'
-            cv2.line(image, (int(right_heel_placement_pixel[0] - x_size), int(right_heel_placement_pixel[1] - x_size)),
-                     (int(right_heel_placement_pixel[0] + x_size), int(right_heel_placement_pixel[1] + x_size)),
-                     (0, 255, 0), 2)
-            cv2.line(image, (int(right_heel_placement_pixel[0] - x_size), int(right_heel_placement_pixel[1] + x_size)),
-                     (int(right_heel_placement_pixel[0] + x_size), int(right_heel_placement_pixel[1] - x_size)),
-                     (0, 255, 0), 2)
-            cv2.line(image, (int(left_heel_placement_pixel[0] - x_size), int(left_heel_placement_pixel[1] - x_size)),
-                     (int(left_heel_placement_pixel[0] + x_size), int(left_heel_placement_pixel[1] + x_size)),
-                     (0, 255, 0), 2)
-            cv2.line(image, (int(left_heel_placement_pixel[0] - x_size), int(left_heel_placement_pixel[1] + x_size)),
-                     (int(left_heel_placement_pixel[0] + x_size), int(left_heel_placement_pixel[1] - x_size)),
-                     (0, 255, 0), 2)
+            # Analyse distance between feet
+            def feet_stance():
+                feet_distance = np.sqrt((self.landmarks["left_heel"][0] - self.landmarks["right_heel"][0]) ** 2 +
+                                        (self.landmarks["left_heel"][1] - self.landmarks["right_heel"][1]) ** 2)
+                shoulder_distance = np.sqrt((self.landmarks["left_shoulder"][0] - self.landmarks["right_shoulder"][0]) ** 2 +
+                                            (self.landmarks["left_shoulder"][1] - self.landmarks["right_shoulder"][1]) ** 2)
+                left_heel_pixel = convert_coordinates(self.landmarks["left_heel"], image)
+                right_heel_pixel = convert_coordinates(self.landmarks["right_heel"], image)
+                left_shoulder_pixel = convert_coordinates(self.landmarks["left_shoulder"], image)
+                right_shoulder_pixel = convert_coordinates(self.landmarks["right_shoulder"], image)
+                left_heel_placement_pixel = [left_shoulder_pixel[0], left_heel_pixel[1]]
+                right_heel_placement_pixel = [right_shoulder_pixel[0], right_heel_pixel[1]]
+                if feet_distance > 1.20 * shoulder_distance:
+                    self.results.feet_too_far = True
+                elif feet_distance < 0.80 * shoulder_distance:
+                    self.results.feet_too_close = True
+                else:
+                    self.results.feet_too_close = False
+                    self.results.feet_too_far = False
 
-        # Analyse positioning of toes
-        left_toes_angle = calculate_angle(self.landmarks["left_toes"], self.landmarks["left_ankle"],
-                                          self.landmarks["right_ankle"])
-        left_toes_pixel = convert_coordinates(self.landmarks["left_toes"], image)
-        right_toes_angle = calculate_angle(self.landmarks["right_toes"], self.landmarks["right_ankle"],
-                                           self.landmarks["left_ankle"])
-        right_toes_pixel = convert_coordinates(self.landmarks["right_toes"], image)
-        if left_toes_angle > 140:
-            self.results.left_toes_too_outward = True
-            self.results.left_toes_too_inward = False
-            cv2.circle(image, left_toes_pixel, 2, (0, 0, 255), 12)
-        elif left_toes_angle < 120:
-            self.results.left_toes_too_inward = True
-            self.results.left_toes_too_outward = False
-            cv2.circle(image, left_toes_pixel, 2, (0, 0, 255), 12)
-        else:
-            self.results.left_toes_too_inward = False
-            self.results.left_toes_too_outward = False
-            cv2.circle(image, left_toes_pixel, 2, (0, 255 , 0), 12)
+                x_size = 15
+                if self.results.feet_too_far or self.results.feet_too_close:
+                    self.draw_dashed_lines(image, left_shoulder_pixel, left_heel_placement_pixel, (0, 0, 255), 2, 15, 15)
+                    self.draw_dashed_lines(image, right_shoulder_pixel, right_heel_placement_pixel, (0, 0, 255), 2, 15, 15)
+                    # Draw 'x'
+                    cv2.line(image, (int(right_heel_placement_pixel[0] - x_size), int(right_heel_placement_pixel[1] - x_size)),
+                            (int(right_heel_placement_pixel[0] + x_size), int(right_heel_placement_pixel[1] + x_size)), (0, 0, 255), 2)
+                    cv2.line(image, (int(right_heel_placement_pixel[0] - x_size), int(right_heel_placement_pixel[1] + x_size)),
+                            (int(right_heel_placement_pixel[0] + x_size), int(right_heel_placement_pixel[1] - x_size)), (0, 0, 255), 2)
+                    cv2.line(image, (int(left_heel_placement_pixel[0] - x_size), int(left_heel_placement_pixel[1] - x_size)),
+                            (int(left_heel_placement_pixel[0] + x_size), int(left_heel_placement_pixel[1] + x_size)),
+                            (0, 0, 255), 2)
+                    cv2.line(image, (int(left_heel_placement_pixel[0] - x_size), int(left_heel_placement_pixel[1] + x_size)),
+                            (int(left_heel_placement_pixel[0] + x_size), int(left_heel_placement_pixel[1] - x_size)),
+                            (0, 0, 255), 2)
+                    cv2.circle(image, left_heel_pixel, 2, (0, 0, 255), 12)
+                    cv2.circle(image, right_heel_pixel, 2, (0, 0, 255), 12)
+                else:
+                    self.draw_dashed_lines(image, left_shoulder_pixel, left_heel_placement_pixel, (0, 255, 0), 2, 15, 15)
+                    self.draw_dashed_lines(image, right_shoulder_pixel, right_heel_placement_pixel, (0, 255, 0), 2, 15, 15)
+                    # Draw 'x'
+                    cv2.line(image, (int(right_heel_placement_pixel[0] - x_size), int(right_heel_placement_pixel[1] - x_size)),
+                            (int(right_heel_placement_pixel[0] + x_size), int(right_heel_placement_pixel[1] + x_size)),
+                            (0, 255, 0), 2)
+                    cv2.line(image, (int(right_heel_placement_pixel[0] - x_size), int(right_heel_placement_pixel[1] + x_size)),
+                            (int(right_heel_placement_pixel[0] + x_size), int(right_heel_placement_pixel[1] - x_size)),
+                            (0, 255, 0), 2)
+                    cv2.line(image, (int(left_heel_placement_pixel[0] - x_size), int(left_heel_placement_pixel[1] - x_size)),
+                            (int(left_heel_placement_pixel[0] + x_size), int(left_heel_placement_pixel[1] + x_size)),
+                            (0, 255, 0), 2)
+                    cv2.line(image, (int(left_heel_placement_pixel[0] - x_size), int(left_heel_placement_pixel[1] + x_size)),
+                            (int(left_heel_placement_pixel[0] + x_size), int(left_heel_placement_pixel[1] - x_size)),
+                            (0, 255, 0), 2)
 
-        if right_toes_angle > 140:
-            self.results.right_toes_too_outward = True
-            self.results.right_toes_too_inward = False
-            cv2.circle(image, right_toes_pixel, 2, (0, 0, 255), 12)
-        elif right_toes_angle < 120:
-            self.results.right_toes_too_inward = True
-            self.results.right_toes_too_outward = False
-            cv2.circle(image, right_toes_pixel, 2, (0, 0, 255), 12)
-        else:
-            self.results.right_toes_too_inward = False
-            self.results.right_toes_too_outward = False
-            cv2.circle(image, right_toes_pixel, 2, (0, 255, 0), 12)
+            def toes_position():
+                # Analyse positioning of toes
+                left_toes_angle = calculate_angle(self.landmarks["left_toes"], self.landmarks["left_ankle"],
+                                                self.landmarks["right_ankle"])
+                left_toes_pixel = convert_coordinates(self.landmarks["left_toes"], image)
+                right_toes_angle = calculate_angle(self.landmarks["right_toes"], self.landmarks["right_ankle"],
+                                                self.landmarks["left_ankle"])
+                right_toes_pixel = convert_coordinates(self.landmarks["right_toes"], image)
+                if left_toes_angle > 140:
+                    self.results.left_toes_too_outward = True
+                    self.results.left_toes_too_inward = False
+                    cv2.circle(image, left_toes_pixel, 2, (0, 0, 255), 12)
+                elif left_toes_angle < 110:
+                    self.results.left_toes_too_inward = True
+                    self.results.left_toes_too_outward = False
+                    cv2.circle(image, left_toes_pixel, 2, (0, 0, 255), 12)
+                else:
+                    self.results.left_toes_too_inward = False
+                    self.results.left_toes_too_outward = False
+                    cv2.circle(image, left_toes_pixel, 2, (0, 255 , 0), 12)
 
-        left_shoulder_hip_distance = self.landmarks["left_hip"][1] - self.landmarks["left_shoulder"][1]
-        # Determine values at tallest point in squat
-        if left_shoulder_hip_distance > self.results.tallest_squat_height:
-            self.results.tallest_squat_height = left_shoulder_hip_distance
+                if right_toes_angle > 140:
+                    self.results.right_toes_too_outward = True
+                    self.results.right_toes_too_inward = False
+                    cv2.circle(image, right_toes_pixel, 2, (0, 0, 255), 12)
+                elif right_toes_angle < 110:
+                    self.results.right_toes_too_inward = True
+                    self.results.right_toes_too_outward = False
+                    cv2.circle(image, right_toes_pixel, 2, (0, 0, 255), 12)
+                else:
+                    self.results.right_toes_too_inward = False
+                    self.results.right_toes_too_outward = False
+                    cv2.circle(image, right_toes_pixel, 2, (0, 255, 0), 12)
 
-        # Determine when squat is being performed
-        if left_shoulder_hip_distance < (self.results.tallest_squat_height * 0.95):
-            self.results.performing_squat = True
-            self.results.completed_squat = False
-        else:
-            self.results.performing_squat = False
-            self.results.completed_squat = True
+                left_shoulder_hip_distance = self.landmarks["left_hip"][1] - self.landmarks["left_shoulder"][1]
+                # Determine values at tallest point in squat
+                if left_shoulder_hip_distance > self.results.tallest_squat_height:
+                    self.results.tallest_squat_height = left_shoulder_hip_distance
 
-        # Analyse knees during squat execution
-        left_knee_pixel = convert_coordinates(self.landmarks["left_knee"], image)
-        right_knee_pixel = convert_coordinates(self.landmarks["right_knee"], image)
-        if self.results.performing_squat:
-            if self.landmarks["left_knee"][0] < self.landmarks["left_ankle"][0]:
-                self.results.left_knee_inward += 1
-                cv2.circle(image, left_knee_pixel, 2, (0, 0, 255), 12)
-            else:
-                self.results.left_knee_adequate += 1
+                # Determine when squat is being performed
+                if left_shoulder_hip_distance < (self.results.tallest_squat_height * 0.95):
+                    self.results.performing_squat = True
+                    self.results.completed_squat = False
+                else:
+                    self.results.performing_squat = False
+                    self.results.completed_squat = True
 
-            if self.landmarks["right_knee"][0] > self.landmarks["right_ankle"][0]:
-                self.results.right_knee_inward += 1
-                cv2.circle(image, right_knee_pixel, 2, (0, 0, 255), 12)
-            else:
-                self.results.right_knee_adequate += 1
+            def knees_position():
+                # Analyse knees during squat execution
+                left_knee_pixel = convert_coordinates(self.landmarks["left_knee"], image)
+                right_knee_pixel = convert_coordinates(self.landmarks["right_knee"], image)
+
+                if self.landmarks["left_knee"][0] < self.landmarks["left_ankle"][0]:
+                    self.results.left_knee_inward += 1
+                    cv2.circle(image, left_knee_pixel, 2, (0, 0, 255), 12)
+                else:
+                    self.results.left_knee_adequate += 1
+
+                if self.landmarks["right_knee"][0] > self.landmarks["right_ankle"][0]:
+                    self.results.right_knee_inward += 1
+                    cv2.circle(image, right_knee_pixel, 2, (0, 0, 255), 12)
+                else:
+                    self.results.right_knee_adequate += 1
+
+            feet_stance()
+            toes_position()
+            knees_position()
 
     def analyse_side_view(self, image):
 
@@ -235,6 +248,9 @@ class SquatAnalyser:
             shin_angle = calculate_angle(self.landmarks["left_hip"], self.landmarks["left_knee"],
                                          self.landmarks["left_heel"])
             left_shoulder_pixel = convert_coordinates(self.landmarks["left_shoulder"], image)
+            # Use centre of barbell instead of shoulder if barbell is being used
+            #if self.results.barbell:
+                #left_shoulder_pixel = 
             left_hip_pixel = convert_coordinates(self.landmarks["left_hip"], image)
             torso_shin_angle_diff = torso_angle - shin_angle
             if torso_shin_angle_diff > 10:
@@ -267,7 +283,7 @@ class SquatAnalyser:
             else:
                 self.results.too_deep = False
                 self.results.too_shallow = False
-                cv2.line(image, left_hip_pixel, left_knee_pixel, (0, 255, 0), 6)\
+                cv2.line(image, left_hip_pixel, left_knee_pixel, (0, 255, 0), 6)
 
     #def analyse_bar_path(self, image):
 
