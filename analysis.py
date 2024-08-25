@@ -18,20 +18,17 @@ class Analysis:
           self.mp_pose = mp.solutions.pose
           self.video_path = video_path
 
+          self.view = ""
           self.landmarks = {}
           self.results = {}
           self.angles = {}
           self.pixels = {}
-
           # If a weight is detected, the weight type and a set of all of its coordinates are stored.
           self.weight = {"type": "",
                "coordinates": []
                }
-          self.view = ""
-
-          self.process_video()
      
-     def process_video(self):
+     def process_video(self, gui):
           model = YOLO('runs/detect/barbell_detector/weights/best.pt')
           cap = cv2.VideoCapture(self.video_path)
 
@@ -40,16 +37,17 @@ class Analysis:
                     ret, frame = cap.read()
                     if not ret:
                          break
+                    # Keep the analysis window updated with the original video frame for playback.
+                    gui.update_video_frame(frame, label='original')
 
-                    self.running = True
-                    # Detect weight with YOLO
+                    # Detect the presence of a weight.
                     results = model(frame, verbose=False)
                     annotated_frame = results[0].plot()
 
                     for result in results:
                          for detection in result.boxes:
                               confidence = detection.conf.item()
-                              # If confidence > 70% and class is 'barbell'
+                              # If detection confidence > 70% and class is 'barbell'.
                               if confidence > 0.7 and detection.cls == 0:
                                    self.weight["type"] = "barbell"
                                    box = detection.xywh[0]
@@ -57,7 +55,7 @@ class Analysis:
                                    y_coordinate = box[1].item()
                                    self.weight["coordinates"].append((x_coordinate, y_coordinate))
 
-                    # Detect landmarks with MediaPipe
+                    # Detect landmarks.
                     image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     image_rgb.flags.writeable = False
                     landmarks_results = pose.process(image_rgb)
@@ -66,6 +64,7 @@ class Analysis:
 
                     if landmarks_results.pose_landmarks:
                          landmarks = landmarks_results.pose_landmarks.landmark
+                         # Perform calculations and analyses for each frame.
                          self.extract_landmarks(landmarks)
                          self.draw_landmarks(landmarks_results, image_bgr)
                          self.get_landmark_pixels(image_bgr)
@@ -75,7 +74,6 @@ class Analysis:
                          self.determine_view()
                          self.initialise_results()
                          if self.weight["type"] == "barbell":
-                              # COMPLETE BAR PATH ANALYSIS 
                               self.analyse_bar_path()
                          if self.view == "left":
                               self.analyse_side_view(image_bgr)
@@ -83,18 +81,22 @@ class Analysis:
                               self.analyse_front_view(image_bgr)
                          else:
                              print("View error.")
-                    # Display the results
+
+                    # Update the text in the analysis window depending on the results.
+                    gui.update_analysis_text(self)
+                    
+                    # Combine the annotations from MediaPipe and YOLO in one frame.
                     combined_frame = cv2.addWeighted(annotated_frame, 0.3, image_bgr, 0.7, 0)
-                    cv2.imshow("YOLO and MediaPipe Feed", combined_frame)
+                    # Keep the analysis window updated with the annotated frame for playback.
+                    gui.update_video_frame(combined_frame, label='processed')
 
                     if cv2.waitKey(10) & 0xFF == ord("q"):
                          break
 
           cap.release()
           cv2.destroyAllWindows()
-          self.running = False
 
-     # Extract x and y coordinates of each landmark and add to landmarks dictionary
+     # Extract x and y coordinates of each landmark and add to landmarks dictionary.
      def extract_landmarks(self, landmarks):
 
         self.landmarks = {"left_hip": [landmarks[self.mp_pose.PoseLandmark.LEFT_HIP.value].x,
@@ -125,11 +127,11 @@ class Analysis:
                     landmarks[self.mp_pose.PoseLandmark.RIGHT_ANKLE.value].y]
                         }
         
-     # Draw landmarks
+     # Draw landmarks and connections on playback video.
      def draw_landmarks(self, results, image):
         self.mp_drawing.draw_landmarks(image, results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS,
                                        self.mp_drawing.DrawingSpec(color=(0, 255, 0), thickness=4, circle_radius=6),
-                                       self.mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=6, circle_radius=6))
+                                       self.mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=8, circle_radius=6))
 
      # Determine the view that the exercise is being recorded from. The analyses performed on the
      # exercise is dependant on the view. The same analyses cannot be accurately 
@@ -158,7 +160,7 @@ class Analysis:
      def draw_circle(self, image, pixel, colour, radius=2, size=20):
           cv2.circle(image, pixel, radius, self.colours[colour], size)
      
-     def draw_line(self, image, start, end, colour, thickness=6):
+     def draw_line(self, image, start, end, colour, thickness=8):
          cv2.line(image, start, end, self.colours[colour], thickness)
      
      def draw_dashed_line(self, image, start_point, end_point, colour, thickness=6, dash_length=15, gap_length=15):
@@ -226,11 +228,19 @@ class Squat(Analysis):
                if "torso" not in self.results:
                     self.results = {
                          "torso": {
+                              # Counters are used to store the total number of frames that
+                              # the torso is in each criterion. This is used to determine the
+                              # overall result of the torso position, rather than only the last
+                              # recorded position of the torso. The 'current' key is used to get the
+                              # current state of the torso for displaying the live feedback in the
+                              # analysis GUI.
+                              "current": "",
                               "upright": 0,
                               "adequate": 0,
                               "forward": 0
                          },
                          "depth": {
+                             "current": "",
                               "shallow": False,
                               "adequate": False,
                               "deep": False
@@ -238,7 +248,7 @@ class Squat(Analysis):
                     }
                if self.weight["type"] == "barbell" and "barbell" not in self.results:
                     self.results["barbell"] = {
-                         "straight": False,
+                         "straight": True,
                     }
           if self.view == "front":
                if "feet" not in self.results:
@@ -306,10 +316,8 @@ class Squat(Analysis):
                                                             self.landmarks["left_knee"],
                                                             self.landmarks["left_heel"]
           )
-          self.angles["shoulder_hip_knee_angle"] = calculate_angle(self.landmarks["left_shoulder"],
-                                                            self.landmarks["left_hip"],
-                                                            self.landmarks["left_knee"]
-          )
+          self.angles["shoulder_hip_knee_angle"] = calculate_angle(self.landmarks["left_shoulder"], 
+                                                       self.landmarks["left_hip"], self.landmarks["left_knee"])
           self.angles["left_toes_ankles_angle"] = calculate_angle(self.landmarks["left_toes"],
                                                             self.landmarks["left_ankle"],
                                                             self.landmarks["right_ankle"]
@@ -370,7 +378,7 @@ class Squat(Analysis):
           # Determine when squat is being performed based on distance between shoulders and knees. If
           # the distance in between the shoulders and knees is less than 0.4, the squat is being 
           # performed.
-          # ADJUST FOR HEIGHT!
+          # Note: This was hardcoded for my height and has not been adjusted for different heights yet.
           elif self.view == "front":
                if self.distances["shoulder_knee_distance"] >= 0.4:
                     return "standing"
@@ -387,12 +395,15 @@ class Squat(Analysis):
                torso_shin_angle_diff = self.angles["shoulder_hip_knee_angle"] - self.angles["hip_knee_heel_angle"]
                if torso_shin_angle_diff > 10:
                     self.results["torso"]["upright"] += 1
+                    self.results["torso"]["current"] = "upright"
                     self.draw_line(image, self.pixels["left_shoulder"], self.pixels["left_hip"], "red")
                elif torso_shin_angle_diff < -10:
                     self.results["torso"]["forward"] += 1
+                    self.results["torso"]["current"] = "forward"
                     self.draw_line(image, self.pixels["left_shoulder"], self.pixels["left_hip"], "red")
                else:
                     self.results["torso"]["adequate"] += 1
+                    self.results["torso"]["current"] = "adequate"
                     self.draw_line(image, self.pixels["left_shoulder"], self.pixels["left_hip"], "green")
 
           # Analyse squat depth based on hip, knee and heel coordinates. If the hip does not go 
@@ -402,18 +413,24 @@ class Squat(Analysis):
           def analyse_squat_depth():
                if self.coordinates["largest_left_hip_y"] < self.coordinates["largest_left_knee_y"]:
                    self.results["depth"]["shallow"] == True
+                   self.results["depth"]["current"] = "shallow"
                    self.draw_line(image, self.pixels["left_hip"], self.pixels["left_knee"], "orange")
                elif self.angles["smallest_hip_knee_heel_angle"] < 30:
-                   self.results["depth"]["shallow"] == True
+                   self.results["depth"]["deep"] == True
+                   self.results["depth"]["current"] = "deep"
                    self.draw_line(image, self.pixels["left_hip"], self.pixels["left_knee"], "red")
                else:
                    self.results["depth"]["adequate"] == True
+                   self.results["depth"]["current"] = "adequate"
                    self.draw_line(image, self.pixels["left_hip"], self.pixels["left_knee"], "green")
 
-          # Perform analyses while subject is performing squat
+          # Perform analyses while subject is performing squat.
           if self.determine_phase() == "squatting":
              analyse_torso_position()
              analyse_squat_depth()
+             if self.weight["type"] == "barbell":
+                 self.results["barbell"]["straight"] = self.analyse_bar_path()
+                 print(self.results["barbell"]["straight"])
 
      def analyse_front_view(self, image):
          
@@ -536,7 +553,7 @@ class Deadlift(Analysis):
      def analyse_side_view(self, image):
          print(self.determine_phase())
 
-     # Feet stance
+     # To do: Feet stance.
 
-     # Toes
+     # To do: Toe positioning.
      
