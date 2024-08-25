@@ -13,9 +13,6 @@ class Analysis:
                "orange": (0, 165, 255)
                }
      
-     # ===========
-     # Initialiser
-     # ===========
      def __init__(self, video_path):
           self.mp_drawing = mp.solutions.drawing_utils
           self.mp_pose = mp.solutions.pose
@@ -26,7 +23,7 @@ class Analysis:
           self.angles = {}
           self.pixels = {}
 
-          # If a weight is detected, the weight type and a set containing all of its coordinates are stored
+          # If a weight is detected, the weight type and a set of all of its coordinates are stored.
           self.weight = {"type": "",
                "coordinates": []
                }
@@ -34,9 +31,6 @@ class Analysis:
 
           self.process_video()
      
-     # ===========================
-     # Detect landmarks and weight
-     # ===========================
      def process_video(self):
           model = YOLO('runs/detect/barbell_detector/weights/best.pt')
           cap = cv2.VideoCapture(self.video_path)
@@ -137,6 +131,11 @@ class Analysis:
                                        self.mp_drawing.DrawingSpec(color=(0, 255, 0), thickness=4, circle_radius=6),
                                        self.mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=6, circle_radius=6))
 
+     # Determine the view that the exercise is being recorded from. The analyses performed on the
+     # exercise is dependant on the view. The same analyses cannot be accurately 
+     # performed on both views because of limitations in the Pose solution, such as its inability to 
+     # accurately measure the distance between the feet when the video is recorded from the side, or 
+     # difficulty in detecting certain landmarks when key body parts are occluded in the side view.
      def determine_view(self):
           right_knee_visibility = self.landmarks["right_knee"][2]
           left_knee_visibility = self.landmarks["left_knee"][2]
@@ -191,40 +190,40 @@ class Analysis:
                                                                          self.colours[colour], 2)
      
      def initialise_results():
+         # Placeholder to be overridden by subclasses.
          pass
 
      def get_landmark_pixels(self):
-         # Placeholder to be overridden by subclasses
+         # Placeholder to be overridden by subclasses.
          pass
 
      def calculate_angles(self):
-        # Placeholder to be overridden by subclasses
+        # Placeholder to be overridden by subclasses.
         pass 
 
      def calculate_distances(self):
-        # Placeholder to be overridden by subclasses
+        # Placeholder to be overridden by subclasses.
         pass 
 
      def calculate_coordinates(self):
+         # Placeholder to be overridden by subclasses.
          pass
      
      def analyse_side_view(self):
-         # Placeholder to be overridden by subclasses
+         # Placeholder to be overridden by subclasses.
          pass
      
 
 class Squat(Analysis):
 
-     deepest_squat_angle = float('inf')
-
      def __init__(self, video_path):
           super().__init__(video_path)
-          self.smallest_hip_knee_heel_angle = float('inf')
 
+     # Initialise a dictionary containing the results of the analysis. The contents are dependant on
+     # whether the squat is being analysed from the front view or side view.
      def initialise_results(self):
-          # Check if results have not been initialised yet.
-          if "torso" not in self.results:
-               if self.view == "left" or self.view == "right":
+          if self.view == "left" or self.view == "right":
+               if "torso" not in self.results:
                     self.results = {
                          "torso": {
                               "upright": 0,
@@ -236,8 +235,13 @@ class Squat(Analysis):
                               "adequate": False,
                               "deep": False
                          }
-                    } 
-               if self.view == "front":
+                    }
+               if self.weight["type"] == "barbell" and "barbell" not in self.results:
+                    self.results["barbell"] = {
+                         "straight": False,
+                    }
+          if self.view == "front":
+               if "feet" not in self.results:
                     self.results = {
                          "feet": {
                               "far": False,
@@ -263,7 +267,14 @@ class Squat(Analysis):
                               "adequate": False,
                          }
                     }
+               if self.weight["type"] == "barbell" and "barbell" not in self.results:
+                    self.results["barbell"] = {
+                         "left": False,
+                         "balanced": False,
+                         "right": False
+                    }
 
+     # Store the pixels of each landmark that may be required for drawing in a dictionary.
      def get_landmark_pixels(self, image):
          self.pixels = {"left_shoulder":
                     convert_coordinates(self.landmarks["left_shoulder"], image),
@@ -285,8 +296,8 @@ class Squat(Analysis):
                     convert_coordinates(self.landmarks["right_toes"], image)
          }
          if "left_heel" in self.pixels:
-             self.pixels["left_heel_placement"] = [self.pixels["left_shoulder"][0], self.pixels["left_heel"][1]]
-             self.pixels["right_heel_placement"] = [self.pixels["right_shoulder"][0], self.pixels["right_heel"][1]]
+             self.pixels["left_heel_target"] = [self.pixels["left_shoulder"][0], self.pixels["left_heel"][1]]
+             self.pixels["right_heel_target"] = [self.pixels["right_shoulder"][0], self.pixels["right_heel"][1]]
 
      def calculate_angles(self):
 
@@ -406,29 +417,35 @@ class Squat(Analysis):
 
      def analyse_front_view(self, image):
          
+         # Analyse the feet stance based on the distance between the feet and the distance between
+         # the shoulders. If the feet are shoulder-width apart or within a 0.2 tolerance, the feet are
+         # adequately stanced for a conventional squat.
           def analyse_feet_stance():
+               # Feet are too far apart for a conventional squat.
                if self.distances["feet_distance"] > 1.2 * self.distances["shoulder_distance"]:
                     self.results["feet"]["far"] = True
-                    self.draw_dashed_line(image, self.pixels["left_shoulder"], self.pixels["left_heel_placement"], "red")
-                    self.draw_dashed_line(image, self.pixels["right_shoulder"], self.pixels["right_heel_placement"], "red")
-                    self.draw_cross(image, self.pixels["left_heel_placement"], "red")
-                    self.draw_cross(image, self.pixels["right_heel_placement"], "red")
+                    self.draw_dashed_line(image, self.pixels["left_shoulder"], self.pixels["left_heel_target"], "red")
+                    self.draw_dashed_line(image, self.pixels["right_shoulder"], self.pixels["right_heel_target"], "red")
+                    self.draw_cross(image, self.pixels["left_heel_target"], "red")
+                    self.draw_cross(image, self.pixels["right_heel_target"], "red")
                     self.draw_circle(image, self.pixels["left_heel"], "red")
                     self.draw_circle(image, self.pixels["right_heel"], "red")
+               # Feet are too close together for a conventional squat.
                elif self.distances["feet_distance"] > 0.8 * self.distances["shoulder_distance"]:
                    self.results["feet"]["close"] = True
-                   self.draw_dashed_line(image, self.pixels["left_shoulder"], self.pixels["left_heel_placement"], "red")
-                   self.draw_dashed_line(image, self.pixels["right_shoulder"], self.pixels["right_heel_placement"], "red")
-                   self.draw_cross(image, self.pixels["left_heel_placement"], "red")
-                   self.draw_cross(image, self.pixels["right_heel_placement"], "red")
+                   self.draw_dashed_line(image, self.pixels["left_shoulder"], self.pixels["left_heel_target"], "red")
+                   self.draw_dashed_line(image, self.pixels["right_shoulder"], self.pixels["right_heel_target"], "red")
+                   self.draw_cross(image, self.pixels["left_heel_target"], "red")
+                   self.draw_cross(image, self.pixels["right_heel_target"], "red")
                    self.draw_circle(image, self.pixels["left_heel"], "red")
                    self.draw_circle(image, self.pixels["right_heel"], "red")
+               # Feet are adequately stanced for a conventional squat.
                else:
                    self.results["feet"]["adequate"] = True
-                   self.draw_dashed_line(image, self.pixels["left_shoulder"], self.pixels["left_heel_placement"], "green")
-                   self.draw_dashed_line(image, self.pixels["right_shoulder"], self.pixels["right_heel_placement"], "green")
-                   self.draw_cross(image, self.pixels["left_heel_placement"], "green")
-                   self.draw_cross(image, self.pixels["right_heel_placement"], "green")
+                   self.draw_dashed_line(image, self.pixels["left_shoulder"], self.pixels["left_heel_target"], "green")
+                   self.draw_dashed_line(image, self.pixels["right_shoulder"], self.pixels["right_heel_target"], "green")
+                   self.draw_cross(image, self.pixels["left_heel_target"], "green")
+                   self.draw_cross(image, self.pixels["right_heel_target"], "green")
                    self.draw_circle(image, self.pixels["left_heel"], "green")
                    self.draw_circle(image, self.pixels["left_heel"], "green")
 
@@ -464,5 +481,62 @@ class Squat(Analysis):
              analyse_knees()
 
 class Deadlift(Analysis):
-    pass
+     def __init__(self, video_path):
+          super().__init__(video_path)
+
+     def initialise_results(self):
+          if "hip" not in self.results:
+               if self.view == "left" or self.view == "right":
+                    self.results = {
+                         "hip": {
+                              "high": 0,
+                              "adequate": 0,
+                         },
+                         "back": {
+                              "overextended": False,
+                              "adequate": False,
+                              "overflexed": False
+                         }
+                    } 
+               if self.view == "front":
+                    self.results = {
+                         "feet": {
+                              "far": False,
+                              "adequate": False,
+                              "close": False
+                         },
+                         "right_toes": {
+                              "outward": False,
+                              "adequate": False,
+                              "inward": False
+                         },
+                         "left_toes": {
+                              "outward": False,
+                              "adequate": False,
+                              "inward": False
+                         }
+                    }
+
+     def get_landmark_pixels(self, image):
+         pass
+
+     def calculate_angles(self):
+         self.angles["shoulder_hip_knee_angle"] = calculate_angle(self.landmarks["left_shoulder"], 
+                                                            self.landmarks["left_hip"],
+                                                            self.landmarks["left_knee"]
+          )
+     
+     def determine_phase(self):
+          if self.view == "left" or self.view == "right":
+               if self.angles["shoulder_hip_knee_angle"] >= 150:
+                    return "standing"
+               elif self.angles["shoulder_hip_knee_angle"] < 150:
+                    return "deadlifting"
+               
+     def analyse_side_view(self, image):
+         print(self.determine_phase())
+
+     # Feet stance
+
+     # Toes
      
