@@ -1,5 +1,5 @@
 from pathlib import Path
-from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, Label, messagebox, OptionMenu, StringVar
+from tkinter import Tk, Canvas, Entry, Button, PhotoImage, Label, messagebox, OptionMenu, StringVar
 from PIL import Image, ImageTk
 import cv2
 import threading
@@ -52,22 +52,7 @@ class Launch(GUI):
             30.0,
             20.0,
             anchor="nw",
-            text="""Hi! I’m here to help analyze your exercise form and provide real-time feedback on
-areas that could use improvement. My assessments are grounded in widely 
-recognized standards for proper form during these exercises.
-
-Please note that my analysis focuses on the conventional execution of exercises 
-and does not consider variations such as sumo styles or close-foot stances. The 
-depth and accuracy of the analysis are subject to the constraints of the MediaPipe 
-pose estimation models.
-
-To ensure an accurate assessment, please make sure your video meets the 
-following criteria:
-	• The video shows one complete repetition of the exercise.
-	• The video is clear and well-lit.
-	• Your entire body is visible within the frame.
-	• There are no objects or obstructions blocking the camera's view.
-	• The video begins with you in the starting position.""",
+            text="Hi! I’m here to help analyze your exercise form and provide real-time feedback on\nareas that could use improvement. My assessments are grounded in widely\nrecognized standards for proper form during these exercises.\n\nPlease note that my analysis focuses on the conventional execution of exercises\nand does not consider variations such as sumo styles or close-foot stances. The\ndepth and accuracy of the analysis are subject to the constraints of the MediaPipe\npose estimation models.\n\nTo ensure an accurate assessment, please make sure your video meets the\nfollowing criteria:\n• The video shows one complete repetition of the exercise.\n• The video is clear and well-lit.\n• Your entire body is visible within the frame.\n• There are no objects or obstructions blocking the camera's view.\n• The video begins with you in the starting position.\n",
             fill="#000000",
             font=("ArialMT", 12 * -1)
         )
@@ -233,6 +218,7 @@ class Analysis(GUI):
     def exit_app(self):
         sys.exit(0)
 
+
     def change_video(self):
         self.window.destroy()
         import main
@@ -246,23 +232,23 @@ class Analysis(GUI):
         if self.analysis.exercise == "squat":
             if self.analysis.view == "left" or self.analysis.view == "right":
                 # Update torso analysis text.
-                self.text["Torso"] = "Torso position is adequate."
+                self.text["Torso"] = "Your torso is adequately positioned."
                 self.update_result_image("check_mark", 80)
                 if self.analysis.results.get("torso", {}).get("current", 0) == "upright":
-                    self.text["Torso"] = "The torso is too upright."
+                    self.text["Torso"] = "Your torso is too upright."
                     self.update_result_image("cross", 80)
                 elif self.analysis.results.get("torso", {}).get("current", 0) == "forward":
-                    self.text["Torso"] = "The torso is leaning too far forward."
+                    self.text["Torso"] = "Your torso is leaning too far forward."
                     self.update_result_image("cross", 80)
 
                 # Update depth analysis text.
-                self.text["Depth"] = "Squat depth is adequate."
+                self.text["Depth"] = "Your squat depth is adequate."
                 self.update_result_image("check_mark", 164)
                 if self.analysis.results.get("depth", {}).get("current", 0) == "shallow":
-                    self.text["Depth"] = "The squat is not deep enough."
+                    self.text["Depth"] = "Your squat is not deep enough."
                     self.update_result_image("exclamation_mark", 164)
                 elif self.analysis.results.get("depth", {}).get("current", 0) == "deep":
-                    self.text["Depth"] = "The squat is too deep."
+                    self.text["Depth"] = "Your squat is too deep."
                     self.update_result_image("cross", 164)
 
                 if self.analysis.weight["type"] == "barbell":
@@ -308,7 +294,6 @@ class Analysis(GUI):
 
                 self.text["Knees"] = "Knees are adequately positioned."
                 self.update_result_image("check_mark", 245)
-                print(f"{self.analysis.results.get("right_knee", {}).get("current", 0)}")
                 if self.analysis.results.get("right_knee", {}).get("current", 0) == "inward" and self.analysis.results.get("left_knee", {}).get("current", 0) == "inward":
                     self.text["Knees"] = "Both knees are moving inward."
                     self.update_result_image("cross", 245)
