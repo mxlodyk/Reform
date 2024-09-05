@@ -52,6 +52,7 @@ Currently, the program analyses two exercises: **squats** and **deadlifts**. The
     python3 main.py
     ```
 2. Select exercise and video:
+   
     ![Launch Window](screenshots/launch_window.png)
 
 ## Program Structure
