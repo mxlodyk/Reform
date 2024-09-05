@@ -25,11 +25,11 @@ Currently, the program analyses two exercises: **squats** and **deadlifts**. The
 ## Installation
 1. Clone the repository:
     ```bash
-    git clone https://github.com/mxlodyk/Taxi.git
+    git clone https://github.com/mxlodyk/Reform.git
     ```
 2. Navigate to the project directory:
     ```bash
-    cd Taxi
+    cd Reform
     ```
 3. Install the required dependencies:
     ```bash
