@@ -52,7 +52,7 @@ Currently, the program analyses two exercises: **squats** and **deadlifts**. The
     python3 main.py
     ```
 2. Select exercise and video:
-    ![Launch Window](screenshots/launch_window)
+    ![Launch Window](screenshots/launch_window.png)
 
 ## Program Structure
 - `main.py`: The entry point for the program. It handles user input and controls the program flow.
@@ -70,10 +70,10 @@ Contributions are welcome! If you'd like to improve the program or fix any issue
 5. Open a Pull Request.
 
 ## Screenshots
-![Demonstration 1](screenshots/demo_1)
-![Demonstration 2](screenshots/demo_2)
-![Demonstration 3](screenshots/demo_3)
-![Demonstration 4](screenshots/demo_4)
+![Demonstration 1](screenshots/demo_1.png)
+![Demonstration 2](screenshots/demo_2.png)
+![Demonstration 3](screenshots/demo_3.png)
+![Demonstration 4](screenshots/demo_4.png)
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
