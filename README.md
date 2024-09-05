@@ -71,10 +71,10 @@ Contributions are welcome! If you'd like to improve the program or fix any issue
 5. Open a Pull Request.
 
 ## Screenshots
-![Demonstration 1](screenshots/demo_1.png)
-![Demonstration 2](screenshots/demo_2.png)
-![Demonstration 3](screenshots/demo_3.png)
-![Demonstration 4](screenshots/demo_4.png)
+![Demonstration 1](screenshots/screenshot_0.png)
+![Demonstration 2](screenshots/screenshot_1.png)
+![Demonstration 3](screenshots/screenshot_2.png)
+![Demonstration 4](screenshots/screenshot_3.png)
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
