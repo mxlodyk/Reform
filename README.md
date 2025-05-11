@@ -6,7 +6,7 @@
 - [Installation](#installation)
 - [Usage](#usage)
 - [Program Structure](#program-structure)
-- [Contributing](#contributing)
+- [Contributions](#contributions)
 - [Screenshots](#screenshots)
 - [License](#license)
 
@@ -64,7 +64,7 @@ This was developed as part of the ICT206 Intelligent Systems unit at Murdoch Uni
 - `helpers.py`: Includes utility functions for angle calculations, coordinate conversions, and other supporting tasks.
 - `errors.py`: Contains custom error handling.
 
-## Contributing
+## Contributions
 Contributions are welcome! If you'd like to improve the program or fix any issues, please:
 1. Fork the repository.
 2. Create a new branch (`git checkout -b feature/your-feature`).
