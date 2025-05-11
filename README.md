@@ -15,6 +15,8 @@ Reform evaluates an individual's form during strength-training exercises by anal
 
 Currently, the program analyses two exercises: **squats** and **deadlifts**. The analysis is based on widely recognized standards for the **conventional** execution of these exercises and does not account for variations such as sumo styles or close-foot stances. **The depth and accuracy of the analysis are subject to the capabilities of the MediaPipe pose estimation models.**
 
+This was developed as part of the ICT206 Intelligent Systems unit at Murdoch University.
+
 ## Features
 - **Real-Time Analysis and Feedback**: Provides immediate feedback to help users precisely identify and correct form discrepancies.
 - **Landmark Detection**: Detects key body parts using the MediaPipe Pose Landmarker to monitor movements and positions.
